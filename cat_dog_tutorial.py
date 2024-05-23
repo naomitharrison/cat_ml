@@ -1,3 +1,8 @@
+######################################
+## FOLLOWING TUTORIAL FROM
+## https://colab.research.google.com/github/google/eng-edu/blob/main/ml/pc/exercises/image_classification_part1.ipynb?utm_source=practicum-IC&utm_campaign=colab-external&utm_medium=referral&hl=en&utm_content=imageexercise1-colab
+######################################
+
 # Requires file download:
 # !wget --no-check-certificate \
 #     https://storage.googleapis.com/mledu-datasets/cats_and_dogs_filtered.zip \
@@ -14,6 +19,8 @@ import matplotlib.image as mpimg
 from tensorflow.keras import layers
 from tensorflow.keras import Model
 from tensorflow.keras.optimizers import RMSprop
+from tensorflow.keras.preprocessing.image import ImageDataGenerator
+
 
 # unzip training and validation images
 local_zip = '/tmp/cats_and_dogs_filtered.zip'
@@ -31,6 +38,8 @@ validation_cats_dir = os.path.join(validation_dir, 'cats')
 validation_dogs_dir = os.path.join(validation_dir, 'dogs')
 train_cat_fnames = os.listdir(train_cats_dir)
 train_dog_fnames = os.listdir(train_dogs_dir)
+print('total training images:', len(os.listdir(train_dir)))
+print('total validation images:', len(os.listdir(validation_dir)))
 
 # display 4x4 pics
 nrows = 4
@@ -86,5 +95,32 @@ model = Model(img_input, output)
 model.summary()
 
 model.compile(loss='binary_crossentropy',
-              optimizer=RMSprop(lr=0.001),
+              optimizer=RMSprop(learning_rate=0.001),
               metrics=['acc'])
+
+# Generators will rescale img from [0, 255] to [0, 1]
+train_datagen = ImageDataGenerator(rescale=1./255)
+val_datagen = ImageDataGenerator(rescale=1./255)
+
+# Load images 20 at a time
+train_generator = train_datagen.flow_from_directory(
+        train_dir,
+        target_size=(150, 150),
+        batch_size=20,
+        class_mode='binary') # Calculating loss with binary_crossentropy algo
+
+validation_generator = val_datagen.flow_from_directory(
+        validation_dir,
+        target_size=(150, 150),
+        batch_size=20,
+        class_mode='binary')
+
+history = model.fit(
+        train_generator,
+        batch_size=20,
+        steps_per_epoch=100,  # 2000 images = batch_size * steps
+        epochs=15,
+        validation_data=validation_generator,
+        validation_batch_size=20,
+        validation_steps=50,  # 1000 images = batch_size * steps
+        verbose=2)
