@@ -13,6 +13,7 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 from tensorflow.keras import layers
 from tensorflow.keras import Model
+from tensorflow.keras.optimizers import RMSprop
 
 # unzip training and validation images
 local_zip = '/tmp/cats_and_dogs_filtered.zip'
@@ -83,3 +84,7 @@ output = layers.Dense(1, activation='sigmoid')(x)
 # input = before x, output = after x
 model = Model(img_input, output)
 model.summary()
+
+model.compile(loss='binary_crossentropy',
+              optimizer=RMSprop(lr=0.001),
+              metrics=['acc'])
